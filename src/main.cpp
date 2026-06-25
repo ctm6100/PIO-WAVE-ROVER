@@ -23,7 +23,6 @@ JsonDocument jsonInfoHttp;
 #include <Adafruit_ICM20948.h>
 #include <Adafruit_Sensor.h>
 
-
 // functions for barrery info.
 #include "battery_ctrl.h"
 
@@ -48,7 +47,7 @@ JsonDocument jsonInfoHttp;
 // functions for IMU ctrl.
 #include "IMU_ctrl.h"
 
-// functions for movtion ctrl. 
+// functions for movtion ctrl.
 #include "movtion_module.h"
 
 // functions for editing the files in flash.
@@ -69,38 +68,47 @@ JsonDocument jsonInfoHttp;
 // functions for http & web server.
 #include "http_server.h"
 
-
-void moduleType_RoArmM2() {
+void moduleType_RoArmM2()
+{
   unsigned long curr_time = millis();
-  if (curr_time - prev_time >= 10){
+  if (curr_time - prev_time >= 10)
+  {
     constantHandle();
     prev_time = curr_time;
   }
 
   RoArmM2_getPosByServoFeedback();
-  
+
   // esp-now flow ctrl as a flow-leader.
-  switch(espNowMode) {
-  case 1: espNowGroupDevsFlowCtrl();break;
-  case 2: espNowSingleDevFlowCtrl();break;
+  switch (espNowMode)
+  {
+  case 1:
+    espNowGroupDevsFlowCtrl();
+    break;
+  case 2:
+    espNowSingleDevFlowCtrl();
+    break;
   }
 
-  if (InfoPrint == 2) {
+  if (InfoPrint == 2)
+  {
     RoArmM2_infoFeedback();
   }
 }
 
-
-void moduleType_Gimbal() {
+void moduleType_Gimbal()
+{
   getGimbalFeedback();
   gimbalSteady(steadyGoalY);
 }
 
-
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   Wire.begin(S_SDA, S_SCL);
-  while(!Serial) {}
+  while (!Serial)
+  {
+  }
 
   ina219_init();
   inaDataUpdate();
@@ -111,14 +119,19 @@ void setup() {
   mm_settings(mainType, moduleType);
 
   init_oled();
-  if (mainType == 1) {
+  if (mainType == 1)
+  {
     screenLine_0 = "WAVE ROVER";
-  } else if (mainType == 2) {
+  }
+  else if (mainType == 2)
+  {
     screenLine_0 = "UGV";
-  } else if (mainType == 3) {
+  }
+  else if (mainType == 3)
+  {
     screenLine_0 = "UGV";
-  } 
-  
+  }
+
   screenLine_1 = "version: 0.90";
   screenLine_2 = "starting...";
   screenLine_3 = "";
@@ -136,49 +149,68 @@ void setup() {
   screenLine_2 = screenLine_3;
   screenLine_3 = "Initialize LittleFS";
   oled_update();
-  if(InfoPrint == 1){Serial.println("Initialize LittleFS for Flash files ctrl.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Initialize LittleFS for Flash files ctrl.");
+  }
   initFS();
 
   // init the funcs in switch_module.h
   screenLine_2 = screenLine_3;
   screenLine_3 = "Initialize 12V-switch ctrl";
   oled_update();
-  if(InfoPrint == 1){Serial.println("Initialize the pins used for 12V-switch ctrl.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Initialize the pins used for 12V-switch ctrl.");
+  }
   movtionPinInit();
 
   // servos power up
   screenLine_2 = screenLine_3;
   screenLine_3 = "Power up the servos";
   oled_update();
-  if(InfoPrint == 1){Serial.println("Power up the servos.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Power up the servos.");
+  }
   delay(500);
-  
+
   // init servo ctrl functions.
   screenLine_2 = screenLine_3;
   screenLine_3 = "ServoCtrl init UART2TTL...";
   oled_update();
-  if(InfoPrint == 1){Serial.println("ServoCtrl init UART2TTL...");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("ServoCtrl init UART2TTL...");
+  }
   RoArmM2_servoInit();
 
   // check the status of the servos.
   screenLine_2 = screenLine_3;
   screenLine_3 = "Bus servos status check...";
   oled_update();
-  if(InfoPrint == 1){Serial.println("Bus servos status check...");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Bus servos status check...");
+  }
   RoArmM2_initCheck(false);
 
-  if(InfoPrint == 1 && RoArmM2_initCheckSucceed){
+  if (InfoPrint == 1 && RoArmM2_initCheckSucceed)
+  {
     Serial.println("All bus servos status checked.");
   }
-  if(RoArmM2_initCheckSucceed) {
+  if (RoArmM2_initCheckSucceed)
+  {
     screenLine_2 = "Bus servos: succeed";
-  } else {
-    screenLine_2 = "Bus servos: " + 
-    servoFeedback[BASE_SERVO_ID - 11].status +
-    servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].status +
-    servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].status +
-    servoFeedback[ELBOW_SERVO_ID - 11].status +
-    servoFeedback[GRIPPER_SERVO_ID - 11].status;
+  }
+  else
+  {
+    screenLine_2 = "Bus servos: " +
+                   servoFeedback[BASE_SERVO_ID - 11].status +
+                   servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].status +
+                   servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].status +
+                   servoFeedback[ELBOW_SERVO_ID - 11].status +
+                   servoFeedback[GRIPPER_SERVO_ID - 11].status;
   }
   screenLine_3 = ">>> Moving to init pos...";
   oled_update();
@@ -187,27 +219,42 @@ void setup() {
 
   screenLine_3 = "Reset joint torque to ST_TORQUE_MAX";
   oled_update();
-  if(InfoPrint == 1){Serial.println("Reset joint torque to ST_TORQUE_MAX.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Reset joint torque to ST_TORQUE_MAX.");
+  }
   RoArmM2_dynamicAdaptation(0, ST_TORQUE_MAX, ST_TORQUE_MAX, ST_TORQUE_MAX, ST_TORQUE_MAX);
 
   screenLine_3 = "WiFi init";
   oled_update();
-  if(InfoPrint == 1){Serial.println("WiFi init.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("WiFi init.");
+  }
   initWifi();
 
   screenLine_3 = "http & web init";
   oled_update();
-  if(InfoPrint == 1){Serial.println("http & web init.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("http & web init.");
+  }
   initHttpWebServer();
 
   screenLine_3 = "ESP-NOW init";
   oled_update();
-  if(InfoPrint == 1){Serial.println("ESP-NOW init.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("ESP-NOW init.");
+  }
   initEspNow();
 
   screenLine_3 = "UGV started";
   oled_update();
-  if(InfoPrint == 1){Serial.println("UGV started.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("UGV started.");
+  }
 
   getThisDevMacAddress();
 
@@ -222,24 +269,33 @@ void setup() {
 
   led_pwm_ctrl(0, 0);
 
-  if(InfoPrint == 1){Serial.println("Application initialization settings.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Application initialization settings.");
+  }
   createMission("boot", "these cmds run automatically at boot.");
   missionPlay("boot", 1);
 }
 
-
-void loop() {
+void loop()
+{
   serialCtrl();
   server.handleClient();
 
   // read and compute the info of joints.
-  switch (moduleType) {
-  case 1: moduleType_RoArmM2();break;
-  case 2: moduleType_Gimbal();break;
+  switch (moduleType)
+  {
+  case 1:
+    moduleType_RoArmM2();
+    break;
+  case 2:
+    moduleType_Gimbal();
+    break;
   }
 
   // recv esp-now json cmd.
-  if(runNewJsonCmd) {
+  if (runNewJsonCmd)
+  {
     jsonCmdReceiveHandler();
     jsonCmdReceive.clear();
     runNewJsonCmd = false;
@@ -248,20 +304,23 @@ void loop() {
   getLeftSpeed();
 
   LeftPidControllerCompute();
-  
+
   getRightSpeed();
-  
+
   RightPidControllerCompute();
-  
+
   oledInfoUpdate();
 
   updateIMUData();
 
-  if (baseFeedbackFlow) {
+  if (baseFeedbackFlow)
+  {
     baseInfoFeedback();
   }
 
   heartBeatCtrl();
 
   size_t freeHeap = esp_get_free_heap_size();
+
+  vTaskDelay(pdMS_TO_TICKS(0));
 }
