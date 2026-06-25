@@ -322,5 +322,5 @@ void loop()
 
   size_t freeHeap = esp_get_free_heap_size();
 
-  vTaskDelay(pdMS_TO_TICKS(0));
+  vTaskDelay(0);
 }
