@@ -1,6 +1,6 @@
 # waveshare_rover
 
-PlatformIO port of [Waveshare Rover v0.9](https://www.waveshare.com/wiki/WAVE_ROVER) firmware for ESP32.
+PlatformIO port of [Waveshare Wave Rover v0.9](https://www.waveshare.com/wiki/WAVE_ROVER) firmware for ESP32.
 
 This repo keeps original Arduino-style module layout, then builds it with PlatformIO using `espressif32`, `esp32dev`, and Arduino framework.
 
