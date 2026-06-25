@@ -1,7 +1,7 @@
 #include <ArduinoJson.h>
-StaticJsonDocument<256> jsonCmdReceive;
-StaticJsonDocument<256> jsonInfoSend;
-StaticJsonDocument<512> jsonInfoHttp;
+JsonDocument jsonCmdReceive;
+JsonDocument jsonInfoSend;
+JsonDocument jsonInfoHttp;
 
 // TaskHandle_t Pid_ctrl;
 
