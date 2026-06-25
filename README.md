@@ -1,6 +1,6 @@
 # waveshare_rover
 
-PlatformIO port of Waveshare Rover v0.9 firmware for ESP32.
+PlatformIO port of [Waveshare Rover v0.9](https://www.waveshare.com/wiki/WAVE_ROVER) firmware for ESP32.
 
 This repo keeps original Arduino-style module layout, then builds it with PlatformIO using `espressif32`, `esp32dev`, and Arduino framework.
 
@@ -145,6 +145,138 @@ After WiFi comes up:
 
 - AP address is `192.168.4.1`
 - STA address is shown on serial output and OLED
+
+## JSON command API
+
+Most runtime control goes through JSON commands defined in `src/json_cmd.h` and dispatched in `src/uart_ctrl.h`.
+
+Full command reference lives in [doc/json_cmd.md](doc/json_cmd.md).
+
+Command format:
+
+- every command must include `T`
+- `T` is command ID
+- other keys depend on command type
+
+Supported input paths:
+
+- serial: one JSON object per line, newline terminated
+- HTTP: send JSON as first query arg to `/js`
+- ESP-NOW: some commands can be wrapped and forwarded to follower devices
+
+Typical HTTP test:
+
+```bash
+curl "http://192.168.4.1/js?json={\"T\":130}"
+```
+
+`server.arg(0)` is used internally, so only first query arg matters.
+
+### Command groups
+
+Common command ranges:
+
+- `1` to `143`: rover drive, OLED, IMU, feedback, LEDs, gimbal, speed tuning
+- `100` to `144`: RoArm-M2 motion, joints, XYZT, torque, UI
+- `200` to `208`: LittleFS file operations
+- `220` to `242`: mission create, edit, play
+- `300` to `306`: ESP-NOW config and forwarding
+- `401` to `408`: WiFi config and status
+
+### Common commands
+
+Drive and base:
+
+- `{"T":1,"L":0.5,"R":0.5}` set left/right speed target
+- `{"T":11,"L":164,"R":164}` direct PWM input, range about `-255..255`
+- `{"T":13,"X":0.1,"Z":0.3}` ROS-style linear/angular control
+- `{"T":130}` get one base feedback packet
+- `{"T":131,"cmd":1}` enable continuous base feedback
+
+IMU and feedback:
+
+- `{"T":126}` get IMU packet
+- `{"T":127}` calibrate IMU while robot stays still
+- `{"T":129,"x":-12,"y":0,"z":0}` set IMU offsets
+- `{"T":143,"cmd":1}` enable UART echo for received commands
+
+RoArm-M2 and motion:
+
+- `{"T":100}` move arm to init pose
+- `{"T":101,"joint":1,"rad":0,"spd":0,"acc":10}` move one joint in radians
+- `{"T":104,"x":235,"y":0,"z":234,"t":3.14,"spd":0.25}` move arm in Cartesian space
+- `{"T":105}` get arm position and torque feedback
+- `{"T":121,"joint":1,"angle":0,"spd":10,"acc":10}` move one joint in degrees
+
+Gimbal and LEDs:
+
+- `{"T":132,"IO4":255,"IO5":255}` LED PWM control
+- `{"T":133,"X":45,"Y":45,"SPD":0,"ACC":0}` simple gimbal move
+- `{"T":137,"s":1,"y":0}` enable gimbal steady mode
+
+Files and missions:
+
+- `{"T":200}` scan LittleFS files
+- `{"T":201,"name":"test.txt","content":"hello"}` create file
+- `{"T":220,"name":"mission_a","intro":"demo mission"}` create mission
+- `{"T":222,"name":"mission_a","step":"{\"T\":104,\"x\":235,\"y\":0,\"z\":234,\"t\":3.14,\"spd\":0.25}"}` append mission step
+- `{"T":242,"name":"mission_a","times":3}` play mission three times
+
+ESP-NOW and WiFi:
+
+- `{"T":301,"mode":3}` set ESP-NOW mode
+- `{"T":302}` get this device MAC address
+- `{"T":306,"mac":"FF:FF:FF:FF:FF:FF","dev":0,"b":0,"s":0,"e":0,"h":0,"cmd":1,"megs":"{\"T\":132,\"IO4\":255,\"IO5\":0}"}` broadcast wrapped command
+- `{"T":401,"cmd":3}` set WiFi boot mode to AP+STA
+- `{"T":405}` get WiFi status
+
+### Feedback examples
+
+Base feedback response from `{"T":130}` uses `T = 1001`:
+
+```json
+{
+  "T": 1001,
+  "L": 0.12,
+  "R": 0.11,
+  "r": 1.3,
+  "p": -0.4,
+  "y": 92.1,
+  "v": 12.4
+}
+```
+
+If `moduleType = 1`, base feedback also includes arm pose and torque fields such as `x`, `y`, `z`, `b`, `s`, `e`, `t`, `torB`, `torS`, `torE`, `torH`.
+
+IMU response from `{"T":126}` uses `T = 1002`:
+
+```json
+{
+  "T": 1002,
+  "r": 1.3,
+  "p": -0.4,
+  "y": 92.1,
+  "ax": 0.01,
+  "ay": -0.02,
+  "az": 9.81,
+  "gx": 0.1,
+  "gy": 0.0,
+  "gz": -0.1,
+  "mx": 12.0,
+  "my": -4.0,
+  "mz": 30.0,
+  "temp": 28.5
+}
+```
+
+RoArm feedback from `{"T":105}` uses `T = 1051`.
+
+### Notes
+
+- serial handler expects full JSON ending with newline
+- some commands print feedback to serial only
+- HTTP path returns `jsonInfoHttp` as response body after command runs
+- command comments in `src/json_cmd.h` are currently best source of exact field names and units
 
 ## Hardware and mode notes
 
