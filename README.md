@@ -6,7 +6,7 @@ This repo keeps original Arduino-style module layout, then builds it with Platfo
 
 ## What this firmware does
 
-- Drives Waveshare rover base on ESP32
+- Drives Waveshare Wave Rover base on ESP32
 - Initializes OLED, INA219 battery monitor, IMU, encoders, motor PID, WiFi, ESP-NOW, and HTTP control server
 - Supports optional module modes for RoArm-M2 or gimbal control
 - Stores runtime config and mission files in LittleFS
