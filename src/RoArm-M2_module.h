@@ -300,6 +300,8 @@ int RoArmM2_shoulderJointCtrlRad(byte returnType, double radInput, u16 speedInpu
   else if(returnType == SHOULDER_DRIVEN_SERVO_ID){
     return goalPos[2];
   }
+
+  return 0;
 }
 
 
@@ -803,6 +805,8 @@ double maxNumInArray(){
     }
     return maxVal;
   }
+
+  return 0.0;
 }
 
 
