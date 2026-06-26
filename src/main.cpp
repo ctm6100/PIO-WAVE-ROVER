@@ -10,7 +10,6 @@ JsonDocument jsonInfoHttp;
 #include <esp_system.h>
 #include <LittleFS.h>
 #include <WiFi.h>
-#include <WebServer.h>
 #include <esp_now.h>
 #include <nvs_flash.h>
 #include <Adafruit_SSD1306.h>
@@ -233,13 +232,23 @@ void setup()
   }
   initWifi();
 
+
   screenLine_3 = "http & web init";
   oled_update();
   if (InfoPrint == 1)
   {
     Serial.println("http & web init.");
   }
-  initHttpWebServer();
+  //initHttpWebServer();
+  // Start server task. Stack size 8192
+  xTaskCreate(
+    webServerTask,   
+    "WebTask",       
+    8192,            
+    NULL,            
+    1,               
+    NULL             
+  );
 
   screenLine_3 = "ESP-NOW init";
   oled_update();
@@ -280,7 +289,7 @@ void setup()
 void loop()
 {
   serialCtrl();
-  server.handleClient();
+  //server.handleClient();
 
   // read and compute the info of joints.
   switch (moduleType)
@@ -322,5 +331,5 @@ void loop()
 
   size_t freeHeap = esp_get_free_heap_size();
 
-  vTaskDelay(0);
+  vTaskDelay(pdMS_TO_TICKS(50));
 }
